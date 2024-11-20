@@ -1,0 +1,163 @@
+%%modificado por jccf abril 2018
+%This is a basic GMRES program with restart
+%Inputs include A,x0,b,m,tol
+%
+clear all
+%function [tiempoC]=GMRES_m(A,b, m_iter,itermax,color,Name_Matrix)
+%%function [tiempoC]=GMRES_m(A,b,color,Name_Matrix,m,itermax)
+%function [NormaResidual,tiempoC,ciclos]=GMRES_m(A,b,color,Name_Matrix,m,itermax)
+inicio=cputime;         %Time Control 
+tol=1e-9;
+%load bcsstk13.mat;
+%load sherman4.mat;
+%load sherman4.mat;
+%load sherman5.mat;
+%load bcsstk13.mat;
+loa
+load add20.mat;
+A=Problem.A;
+%b=Problem.b;
+%b=[1;2;3];
+b=ones(size(A,1),1);
+x0=zeros(size(A,1),1);
+%m=m_iter;
+m=30;
+[s,n]=size (A);
+%maxit=itermax;
+maxit=1000;
+flag=0;
+%color='r'; Name_Matrix='Problem X';
+%  bmax=max(max(A));
+%  bmin=min(min(A));
+%  x0=bmin*ones(n,1)+(bmax-bmin)*rand(n,1);
+if (s~=n)
+    error ('Matrix not square');
+end
+
+[i,j]=size (b);
+
+if (s~=i)
+    error ('Vector does not match size of matrix A');
+end
+
+if (j~=1)
+    error ('Vector is not a column vector')
+end
+
+if (size (b)~=size(x0))
+    error('Initial guess not right size');
+end
+
+restart=1;
+r0=b-A*x0;
+res(1,:)=norm(r0);
+logres(1,:)=norm(r0)/res(1,1);
+%logres(1,:)=norm(r0);
+%logres=[];
+iter(1,:)=restart;
+miteracion(iter(size(iter,1),:),1)=m;
+AC=[];
+Re=[];
+Re(:,size(Re,2)+1)=r0;
+while flag==0
+    %v=zeros(n,m+1);
+    %w=zeros(n,m);
+    r=b-A*x0;
+    beta=norm(r);
+    v(:,1)=r/beta; 
+    %h=zeros(m+1,m);
+
+    for j=1:m                       %modified gram schmidt--Arnoldi
+        w(:,j)=A*v(:,j);
+        for i=1:j
+            h(i,j)=w(:,j)'*v(:,i);
+            w(:,j)=w(:,j)-h(i,j)*v(:,i);
+        end
+        h(j+1,j)=norm(w(:,j));
+        if h(j+1,j)==0
+            m=j;
+            h2=zeros(m+1,m);    
+            for k=1:m
+                h2(:,k)=h(:,k);
+            end
+            h=h2;
+        else        
+        v(:,j+1)=w(:,j)/h(j+1,j);
+        end
+    end
+    Hs=h;
+    g=zeros(m+1,1);
+    g(1,1)=beta;
+ 
+    for j=1:m                       %plane rotations (QR decompostion)
+        P=eye(m+1);   
+        sin=h(j+1,j)/(sqrt(h(j+1,j)^2 + h(j,j)^2));
+        cos=h(j,j)/(sqrt(h(j+1,j)^2 + h(j,j)^2));
+        P(j,j)=cos;
+        P(j+1,j+1)=cos;
+        P(j,j+1)=sin;
+        P(j+1,j)=-sin;
+        h=P*h;
+        g=P*g;
+    end
+    R=zeros(m,m);
+    G=zeros(m,1);
+    V=zeros(n,m);
+    for k=1:m
+        G(k)=g(k);
+        V(:,k)=v(:,k);
+        for i=1:m
+            R(k,i)=h(k,i);
+        end
+    end
+    minimizer=R\G;
+    xm=x0+V*minimizer;
+    r=b-A*xm;
+    Re(:,size(Re,2)+1)=r;
+ 
+    
+    %res(restart+1,:)=abs(g(m+1,1));
+    iter(restart+1,:)=restart+1;
+    miteracion(iter(size(iter,1),:),1)=m;
+    %logres(restart+1,:)=abs(g(m+1,1)/res(1,1));
+    %logres(restart+1,:)=abs(g(m+1,1));
+    logres(size(logres,1)+1,:)=abs(g(m+1,1)/res(1,1));
+    %logres(size(logres,1)+1,:)=abs(g(m+1,1));
+    
+    %if (abs (g(m+1,1))) <tol  || size(logres,1)==maxit
+    if (abs (g(m+1,1)))/res(1,1) <tol  || size(logres,1)==maxit    %empleando última componente de g como residuo
+         flag=1;
+         residuo= (abs (g(m+1,1)))/res(1,1);
+    else
+        x0=xm;                        %update and restart
+        restart=restart+1;
+    end
+AC(size(AC,1)+1,:)=acos(logres(size(logres,1),1)/logres(size(logres,1)-1,1))*(180/pi());
+end
+tiempo=cputime - inicio;     %Imprime tiempo de ejecución
+ %subplot(1,1,1);
+ semilogy(logres,'k')
+ hold on
+final_value = logres(end);
+semilogy(length(logres), final_value, 'ko', 'MarkerSize', 10, 'LineWidth', 2); 
+
+xlabel ('Número de Ciclos');
+ylabel ('Norma relativa del residuo');
+%title('Convergencia del método GMRES(m),LGMRES(m,k) y LGMRES ADAPTATIVO')
+title('Convergencia del método GMRES(m),LGMRES(m,k) y LGMRES ADAPTATIVO')
+%semilogy(logres,color);
+ %legend([f2],['Gmres(m). Tiempo de ejecucion ->',num2str(tiempo)]);
+
+% xlabel('Number of Restart Cycle');ylabel('|rj|/|r0|');
+%legend(['Gmres(m). Tiempo de ejecucion ->',num2str(tiempo)],'Location','Best');
+% %title(['Example 2.2 - Complementary cycles of GMRES. Nl=', num2str(Nl),'; delta=', num2str(dl)])
+ hold on
+%  subplot(2,1,2);
+%  plot(miteracion,color)
+%  xlabel('Number of Restart Cycle');ylabel('m, restart parameters');
+%  hold on
+% % tiempoC= [size(logres,1) sum(miteracion) tiempo];
+lastcycle=size(logres,1)-1;
+tiempoC= tiempo;
+ciclos= lastcycle;
+NormaResidual=logres;
