@@ -358,5 +358,5 @@ function [x, flag, relresvec, mvec, time] = ...
     end
 
     time = toc();
-
 end
+

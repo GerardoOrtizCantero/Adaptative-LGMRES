@@ -1,8 +1,8 @@
 %modificado por jccf agosto 2024
-%modificado Gerado Ortiz noviembre 2024
+%modificado Gerado Ortiz enero 2025
 
-function [x,flag,relressvec,time,ciclos] = ...
-Adaptative_LGMRES(A, b, m, k,lL, tol, maxit, xInitial, varargin)
+function [x,flag,relressvec,time,cycles] = ...
+Adaptative_LGMRES(A, b, m, k,lL, tol, maxit, xInitial)
 
 % Adaptative LGMRES algorithm
     %
@@ -65,10 +65,6 @@ Adaptative_LGMRES(A, b, m, k,lL, tol, maxit, xInitial, varargin)
     %               Vector of relative residual norms of every outer iteration
     %               (cycles). The last relative residual norm is simply given
     %               by relresvec(end).
-    %
-    %   mvec:       (1 up to maxit)-by-1 vector
-    %               Vector of restart parameter values. In case the
-    %               unrestarted algorithm is invoked, mvec = NaN.
     %
     %   time:       scalar
     %               Computational time in seconds.
@@ -220,7 +216,7 @@ Adaptative_LGMRES(A, b, m, k,lL, tol, maxit, xInitial, varargin)
     res(1, :) = norm(r0);
     relresvec(1, :) = (norm(r0) / res(1, 1));
     iter(1, :) = restart;
-    d=lL;
+    d=lL;%**
 
 % Matrix with the history of approximation error vectors////////////////////
     zMat = zeros(n, k);
@@ -259,23 +255,20 @@ w=zeros(n,m+d);
 z=zeros(n,1);
 ij=1; %Para matriz z
 minitial=m;
-%%%%%%%
+
 logres(1,:)=(norm(r0)/res(1,1));
 iter(1,:)=restart;
-miteracion(1,1)=minitial;%//////////////////////////////////////////////
+miteracion(1,1)=minitial;
 mmin=1;
 mmax=n-1; %se puede considerar que no tiene cota superior, antes de las 1000 iteraciones  no logra alcanzar mmax con alpha=-3 y delta=5
 mstep=1;
 alpha0=2;
 delta0=0;
 
-%%%%%
 
 while flag==0
-  %%%%%%%%%%%%%%
      if iter(size(iter,1),:) ~=1
-         
-        [miter]=pdrule(m,minitial,mmin,res,iter(size(iter,1),:),mstep, mmax,alpha0, delta0); %cab
+        [miter]=pdrule(m,minitial,mmin,res,iter(size(iter,1),:),mstep, mmax,alpha0, delta0); 
         m=miter(1,1);
         minitial=miter(1,2);
     else
@@ -334,7 +327,6 @@ while flag==0
         miteracion(size(miteracion,1)+1,1)=m;
         res(restart+1,:)=norm(r0);
         iter(restart+1,:)=restart+1;
-        %logres(size(logres,1)+1,:)=abs(g(m+1,1)/res(1,1));
         logres(size(logres,1)+1,:)=norm(r0)/res(1,1);
 
         if logres(size(logres,1)) <tol
@@ -346,9 +338,8 @@ while flag==0
 
         %Calculo de z(k)
         z(:,ij)= Z;
-        %ij=ij+1;
     else
-        if ij<=lL
+        if ij<=d
             d=ij;
             ij=ij+1;
         end
@@ -409,21 +400,19 @@ while flag==0
         res(restart+1,:)=norm(r0);
         iter(restart+1,:)=restart+1;
         logres(size(logres,1)+1,:)=norm(r0)/res(1,1);
-        %logres(size(logres,1)+1,:)=abs(g(s+1,1)/res(1,1));
         aux=V*minimizer;
         Z=z;
-        if size(z,2)<lL
+        if size(z,2)<d
             z(:,size(z,2)+1)=aux;
         else
-            for j=2:lL
+            for j=2:d
                 z(:,j-1)=Z(:,j);
             end
-                z(:,lL)=aux;
+                z(:,d)=aux;
         end
 
 
 
-        %if abs(g(s+1,1))/res(1,1) <tol || size(logres,1)==maxit
          if logres(size(logres,1),1) <tol || size(logres,1)==maxit
             flag=1;
          else
@@ -439,9 +428,7 @@ end  %while flag
 %retorno de variables
 time=toc;     %Imprime tiempo de ejecucion
 lastcycle=size(logres,1);
-%tiempoc= [lastcycle tiempo];
-%time= tiempoc;
-ciclos= lastcycle;
+cycles= lastcycle;
 relressvec=logres;
 
 
