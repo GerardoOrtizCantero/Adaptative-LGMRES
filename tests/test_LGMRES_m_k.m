@@ -2,22 +2,23 @@
 
 load('C:\Users\Canlort\Downloads\git\krysbas-dev\src\matrices de prueba\memplus.mat');
 
-tic;         %Time Control 
-tol=1e-9;
-maxit=500;
-A=Problem.A;
-b=ones(size(A,1),1);
-color='m'; Name_Matrix='Problem X';
-%%b=ones(size(A,1),1);
-x0=zeros(size(A,1),1);
+%tic;         %Time Control 
+%tol=1e-9;
+%maxit=500;
+%A=Problem.A;
+%b=ones(size(A,1),1);
+%color='m'; Name_Matrix='Problem X';
+
 %m=mL;
-m=29;
+%m=29;
  %d=lL;
-lL=2;
+%lL=2;
+function [x,flag,relressvec,time,cycles] = test_LGMRES_m_k(A, b, m,lL, tol, maxit, xInitial)
 d=lL;
 %s = m + d;
 n=size (A,2);
 flag=0;
+x0=zeros(size(A,1),1);
 %restart=1;
 r=b-A*x0;
 res(1,:)=norm(r);
