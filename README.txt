@@ -17,6 +17,6 @@ El PD‑LGMRES se creo usando como referencia los solvers alojados en el **KrySB
 ## Instalación
 
 ```sh
-git clone https://github.com/tu-usuario/pd-lgmres.git
-cd pd-lgmres
-addpath('pd-lgmres')
+git clone https://github.com/user/PD-LGMRES/tree/main
+cd PD-LGMRES
+addpath('PD-LGMRES')
