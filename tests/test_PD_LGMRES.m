@@ -3,16 +3,15 @@ addpath('C:\Users\Canlort\Downloads\git\adaptative-lgmres-dev\src')
 %variables de prueba
 A=Problem.A;%A
 b=ones(size(A,1),1); %b
-m=29;%m
-k=5; %k
-lL=5; %lL
+m=20;%m
+k=3; %k
 tol=1e-6; %tol
-maxit=150; %maxit
+maxit=200; %maxit
 xInitial=zeros(size(A,1),1); %xInitial=x0
 varargin=[]; %varargin
 
 %adaptative lgmres
-[x1,flag1,relressvec1,time1,cycles] = Adaptative_LGMRES(A, b, m, k, lL, tol, maxit, xInitial);
+[x1,flag1,relressvec1,time1,cycles,m_history] = Adaptative_LGMRES(A, b, m, k, tol, maxit, xInitial);
 %pd_gmres
 [x2, flag2, relresvec2, mvec, time2] = pd_gmres(A, b, m, [], [], tol, maxit, xInitial,varargin);
 %matlab gmres
@@ -50,6 +49,12 @@ label4 = sprintf('LGMRES (Tiempo: %.2f s, Última norma: %.2e)', time4, lastNorm
 semilogy(1:length(relresvec5), relresvec5, '-x', 'LineWidth', 2); 
 lastNorm5 = relresvec5(end); % Última norma residual
 label5 = sprintf('GMRES-E (Tiempo: %.2f s, Última norma: %.2e)', time5, lastNorm5);
+
+% Imprime en consola de la variación de m
+fprintf('Iteración\tValor de m\n');
+for i = 1:length(m_history)
+    fprintf('%d\t\t%d\n', i, m_history(i));
+end
 
 % Configuración del gráfico
 xlabel('Iteraciones','FontSize', 18);
